@@ -1,0 +1,16 @@
+{
+    "name": "events1-sqlserver-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
+        "tasks.max": "1",
+        "topic.prefix": "cdc",
+        "database.hostname": "sql-server",
+        "database.port": "1433",
+        "database.user": "sa",
+        "database.password": "YourStrongPassword1!",
+        "database.names": "MyEvents",
+        "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
+        "schema.history.internal.kafka.topic": "schema-changes.inventory",
+        "database.encrypt": "false"
+    }
+}

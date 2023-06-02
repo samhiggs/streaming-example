@@ -1,0 +1,83 @@
+version: '3'
+
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql-server
+    hostname: eventdb
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrongPassword1!
+      - MSSQL_PID=Standard
+      - MSSQL_AGENT_ENABLED=true
+    volumes:
+      - ./sql-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - cdc-network
+
+  kafka:
+    image: bitnami/kafka
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+    networks:
+      - cdc-network
+
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181~
+    networks:
+      - cdc-network
+
+  debezium:
+    image: debezium/connect
+    container_name: debezium
+    hostname: debezium
+    ports:
+      - "8083:8083"
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_connect_statuses
+    depends_on:
+      - kafka
+    networks:
+      - cdc-network
+
+  node-app:
+    build:
+      context: node-app/
+      dockerfile: Dockerfile
+    image: node-app
+    container_name: node-app
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./node-app/server.js:/app/server.js
+      - ./node-app/public:/app/public
+    depends_on:
+      - kafka
+    networks:
+      - cdc-network
+
+networks:
+  cdc-network:
+    driver: bridge
