@@ -75,6 +75,21 @@ services:
       - ./node-app/public:/app/public
     depends_on:
       - kafka
+      - project-gateway
+    networks:
+      - cdc-network
+  project-gateway:
+    build:
+      context: project-gateway/
+      dockerfile: Dockerfile
+    image: project-gateway
+    container_name: project-gateway
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./project-gateway/server.js:/app/index.js
+    depends_on:
+      - kafka
     networks:
       - cdc-network
 
