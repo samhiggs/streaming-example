@@ -2,9 +2,26 @@
 <html>
 
 <head>
+  <style>
+    .icon {
+      width: 30px;
+      height: 30px;
+      display: inline-block;
+      border-radius: 50%;
+    }
+
+    .green {
+      background-color: green;
+    }
+
+    .red {
+      background-color: red;
+    }
+  </style>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    var socket = io();
+    const serverUrl = 'http://localhost:3003';
+    var socket = io(serverUrl);
 
     socket.on('connect', function () {
       console.log('Connected to server');
@@ -27,10 +44,12 @@
       var eventName = document.getElementById('eventName').value;
       // send the event ID and event name to the server /api/eventdata/{eventId} with payload {eventName}
       console.log(JSON.stringify({ eventName }));
-      fetch(`/api/eventdata/${eventId}`, {
+      fetch(`http://localhost:3003/project-gateway/node-app/api/eventdata/${eventId}`, {
+        // fetch(`http://project-gateway:3000/project-gateway/node-app/api/eventdata/${eventId}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'referrerPolicy': 'no-referrer'
         },
         body: JSON.stringify({ eventName })
       })
@@ -46,7 +65,8 @@
     }
 
     function onDemandFetch(tables) {
-      fetch('/api/eventdata')
+      console.log('Fetching on demand data via gateway')
+      fetch('http://localhost:3003/project-gateway/node-app/api/eventdata')
         .then(response => response.json())
         .then(data => {
           for (table of tables) {
@@ -93,6 +113,26 @@
     }
     // Fetch the initial data when the page loads
     onDemandFetch(['onDemandTableBody', 'eventTableBody']);
+
+    function pollEndpoint() {
+      fetch('http://localhost:3003/health')
+        .then(response => {
+          if (response.ok) {
+            document.getElementById('statusIcon').classList.add('green');
+            document.getElementById('statusText').textContent = 'Active';
+          } else {
+            document.getElementById('statusIcon').classList.add('red');
+            document.getElementById('statusText').textContent = 'Inactive';
+          }
+        })
+        .catch(error => {
+          document.getElementById('statusIcon').classList.add('red');
+          document.getElementById('statusText').textContent = 'Inactive';
+        });
+    }
+
+    // Poll the endpoint every 5 seconds (adjust as needed)
+    setInterval(pollEndpoint, 5000);
   </script>
   <title>Event Data Table</title>
   <style>
@@ -122,6 +162,12 @@
   <input type="text" id="eventName" value="My cool event" />
   <button onclick="updateEventName()">Update</button>
   <br>
+  <div>
+    <span id="url">project-gateway</span>
+    <span id="statusText"></span>
+    <div class="icon" id="statusIcon"></div>
+  </div>
+  <br>
   <h2>On demand data</h2>
   <table>
     <thead>
@@ -138,7 +184,7 @@
   <!-- button to refresh table -->
   <button onclick="onDemandFetch(['onDemandTableBody'])">Refresh</button>
   <br>
-  <h2>Real time (event driven) data using Kafka </h2>
+  <h2> CDC data capture </h2>
   <table>
     <thead>
       <tr>

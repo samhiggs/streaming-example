@@ -1,1 +1,6 @@
 node_modules/
+sql_data/
+kafka_data/
+kafka_config/
+debezium_data/
+debezium_config/

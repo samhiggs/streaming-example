@@ -11,7 +11,7 @@ COPY node_modules node_modules
 RUN npm install --insecure
 
 # Copy the rest of the app source code to the container
-COPY index.js .
+COPY index.ts .
 
 # Expose the port on which your Node.js app is running
 EXPOSE 3003

@@ -1,9 +1,10 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import httpProxy from 'http-proxy';
+import cors from 'cors'
 
 const app = express();
 const proxy = httpProxy.createProxyServer();
-
+app.use(cors())
 interface RouteMappings {
     [podId: string]: string;
 }
@@ -13,11 +14,24 @@ interface Params {
 }
 
 const routeMappings: RouteMappings = {
-    'node-app': 'http://localhost:3002',
-    // Add more mappings for each unique pod ID and backend container URL
+    'node-app': 'http://node-app:3001',
 };
 
+app.get('/health', (req: Request, res: Response) => {
+    res.json({ status: 'healthy' });
+});
+
+
+app.use((req, res, next) => {
+    console.log('Setting headers')
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    next()
+})
+
 app.use('/project-gateway/:containerName/*', (req, res) => {
+    console.log('Routing...')
     const params = req.params as Params;
     const containerName = routeMappings[params['containerName']]
     const targetUrl = `${containerName}/${params['0']}`;
