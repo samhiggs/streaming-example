@@ -49,8 +49,14 @@ const io = socketIO(server)
 // const pool = new sql.ConnectionPool(config); // TODO: implement pool later.
 runConsumer().catch(console.error);
 // Serve static files from the "public" directory
+app.use((req, res, next) => {
+  console.log('Setting headers')
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next()
+})
 app.use(express.static('public'))
-
 // Home route
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html')
