@@ -22,7 +22,7 @@ docker exec kafka kafka-topics.sh \
 ```
 
 Write debezium connector config
-curl -X POST -H "Content-Type: application/json" --data @debezium-connector-config.json http://localhost:8083/connectors
+curl -X POST -H "Content-Type: application/json" --data @debezium-connector-config.properties http://localhost:8083/connectors
 
 Check the connector is working
 curl -X GET http://localhost:8083/connectors/sqlserver-connector/status
