@@ -4,3 +4,4 @@ kafka_data/
 kafka_config/
 debezium_data/
 debezium_config/
+.DS_STORE
